@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="description" content="Tax Refund, Live Currency Converter & Installment Calculator PWA" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <title>Tax & Currency Pro</title>
+  <style>
+    :root {
+      --bg-overlay: rgba(15, 23, 42, 0.85);
+      --card-bg: rgba(30, 41, 59, 0.78);
+      --accent: #38bdf8;
+      --accent-green: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      min-height: 100vh;
+      background-color: #0f172a;
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background: var(--bg-overlay);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+      gap: 12px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand img {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+    }
+
+    .brand h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: transform 0.1s;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.94);
+    }
+
+    /* Display Card */
+    .display-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .input-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .currency-badge {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.15);
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .amount-display {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat-box {
+      background: rgba(15, 23, 42, 0.55);
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .stat-value {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent-green);
+      margin-top: 2px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--card-bg);
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #0f172a;
+    }
+
+    /* Dynamic Content Panels */
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px;
+      max-height: 175px;
+      overflow-y: auto;
+    }
+
+    .list-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    .list-row:last-child {
+      border-bottom: none;
+    }
+
+    .rate-meta {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    /* Embossed Tactile Numpad */
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .num-btn {
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+      color: var(--text-main);
+      font-size: 1.35rem;
+      font-weight: 700;
+      padding: 14px 0;
+      border-radius: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .num-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
+    }
+
+    .num-btn.action {
+      color: #f87171;
+      font-size: 1.1rem;
+    }
+
+    /* Modals (Settings & Calculator) */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      z-index: 50;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 400px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: 88vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    select, input[type="text"], input[type="file"] {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .primary-btn {
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Pop-up Calculator Grid */
+    .calc-screen {
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 10px;
+      text-align: right;
+      font-size: 1.6rem;
+      font-weight: 700;
+      min-height: 54px;
+      word-break: break-all;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .calc-key {
+      background: #334155;
+      border: none;
+      color: white;
+      padding: 14px 0;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .calc-key.op {
+      background: #0284c7;
+    }
+
+    .calc-key.eq {
+      background: var(--accent-green);
+      color: #0f172a;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Bar -->
+    <header>
+      <div class="brand">
+        <img src="icon.svg" alt="App Logo" />
+        <h1 data-i18n="appTitle">Tax & Currency Pro</h1>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="openCalcBtn" title="Calculator">🧮</button>
+        <button class="icon-btn" id="openSettingsBtn" title="Settings">⚙️</button>
+      </div>
+    </header>
+
+    <!-- Main Amount & Tax Refund Display -->
+    <section class="display-card">
+      <div class="input-row">
+        <span class="currency-badge">AED</span>
+        <div class="amount-display" id="mainDisplay">0</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label" data-i18n="vatLabel">5% VAT Amount</div>
+          <div class="stat-value" id="vatDisplay" style="color:#38bdf8;">0.00</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label" data-i18n="refundLabel">Tax Refund (81%)</div>
+          <div class="stat-value" id="refundDisplay">0.00</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- View Switcher -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tabCurrency" data-i18n="tabCurrency">Currency Converter</button>
+      <button class="tab-btn" id="tabInstallments" data-i18n="tabInstallments">Installment Plans</button>
+    </div>
+
+    <!-- Currency Converter Panel -->
+    <section class="panel" id="currencyPanel">
+      <div id="currencyList"></div>
+      <div class="rate-meta" id="rateSourceMeta">Fetching market rates...</div>
+    </section>
+
+    <!-- Installments Panel -->
+    <section class="panel" id="installmentPanel" style="display:none;">
+      <div id="installmentList"></div>
+    </section>
+
+    <!-- Tactile Numpad -->
+    <section class="numpad">
+      <button class="num-btn" data-num="1">1</button>
+      <button class="num-btn" data-num="2">2</button>
+      <button class="num-btn" data-num="3">3</button>
+      <button class="num-btn" data-num="4">4</button>
+      <button class="num-btn" data-num="5">5</button>
+      <button class="num-btn" data-num="6">6</button>
+      <button class="num-btn" data-num="7">7</button>
+      <button class="num-btn" data-num="8">8</button>
+      <button class="num-btn" data-num="9">9</button>
+      <button class="num-btn" data-num=".">.</button>
+      <button class="num-btn" data-num="0">0</button>
+      <button class="num-btn action" id="backspaceBtn">⌫</button>
+      <button class="num-btn action" id="clearBtn" style="grid-column: span 3; padding: 10px 0;" data-i18n="clearBtn">CLEAR</button>
+    </section>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-backdrop" id="settingsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 data-i18n="settingsTitle">Settings</h3>
+        <button class="icon-btn" id="closeSettingsBtn">✕</button>
+      </div>
+
+      <!-- Language Selector -->
+      <div class="form-group">
+        <label data-i18n="langLabel">Language</label>
+        <select id="languageSelect">
+          <option value="en">English</option>
+          <option value="ar">العربية (Arabic)</option>
+          <option value="hi">हिन्दी (Hindi)</option>
+          <option value="tl">Tagalog</option>
+        </select>
+      </div>
+
+      <!-- Add Country / Currency -->
+      <div class="form-group">
+        <label data-i18n="addCountryLabel">Add Country / Currency Code (e.g. JPY, AUD, KWD, QAR)</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="newCurrencyInput" placeholder="e.g. GBP" maxlength="3" style="flex:1; text-transform:uppercase;" />
+          <button class="primary-btn" id="addCurrencyBtn" data-i18n="addBtn">Add</button>
+        </div>
+        <div id="activeCurrenciesTags" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;"></div>
+      </div>
+
+      <!-- Background Customizer -->
+      <div class="form-group">
+        <label data-i18n="bgLabel">App Background Wallpaper</label>
+        <input type="file" id="bgUploadInput" accept="image/*" />
+        <button class="primary-btn" id="resetBgBtn" style="background:#475569; color:white; margin-top:4px;" data-i18n="resetBgBtn">Reset Default Background</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calculator Modal -->
+  <div class="modal-backdrop" id="calcModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 data-i18n="calcTitle">Calculator</h3>
+        <button class="icon-btn" id="closeCalcBtn">✕</button>
+      </div>
+      <div class="calc-screen" id="calcScreen">0</div>
+      <div class="calc-grid">
+        <button class="calc-key" data-calc="C">C</button>
+        <button class="calc-key" data-calc="(">(</button>
+        <button class="calc-key" data-calc=")">)</button>
+        <button class="calc-key op" data-calc="/">÷</button>
+        <button class="calc-key" data-calc="7">7</button>
+        <button class="calc-key" data-calc="8">8</button>
+        <button class="calc-key" data-calc="9">9</button>
+        <button class="calc-key op" data-calc="*">×</button>
+        <button class="calc-key" data-calc="4">4</button>
+        <button class="calc-key" data-calc="5">5</button>
+        <button class="calc-key" data-calc="6">6</button>
+        <button class="calc-key op" data-calc="-">−</button>
+        <button class="calc-key" data-calc="1">1</button>
+        <button class="calc-key" data-calc="2">2</button>
+        <button class="calc-key" data-calc="3">3</button>
+        <button class="calc-key op" data-calc="+">+</button>
+        <button class="calc-key" data-calc="0">0</button>
+        <button class="calc-key" data-calc=".">.</button>
+        <button class="calc-key eq" data-calc="=">=</button>
+        <button class="calc-key op" id="useCalcValueBtn" title="Send to Main">↳ Use</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Register Service Worker for PWA & PWABuilder
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.error('SW error:', err));
+      });
+    }
+
+    // Translations
+    const i18n = {
+      en: {
+        appTitle: "Tax & Currency Pro",
+        vatLabel: "5% VAT Amount",
+        refundLabel: "Tax Refund (81%)",
+        tabCurrency: "Currency Converter",
+        tabInstallments: "Installment Plans",
+        clearBtn: "CLEAR",
+        settingsTitle: "Settings",
+        langLabel: "Language",
+        addCountryLabel: "Add Country Currency (ISO Code: USD, EUR, INR, PHP)",
+        addBtn: "Add",
+        bgLabel: "Custom App Background",
+        resetBgBtn: "Reset Default Background",
+        calcTitle: "Quick Calculator",
+        months: "Months"
+      },
+      ar: {
+        appTitle: "حاسبة الضرائب والعملات",
+        vatLabel: "ضريبة القيمة المضافة 5%",
+        refundLabel: "استرداد الضريبة (81%)",
+        tabCurrency: "محول العملات",
+        tabInstallments: "خطط التقسيط",
+        clearBtn: "مسح",
+        settingsTitle: "الإعدادات",
+        langLabel: "اللغة",
+        addCountryLabel: "إضافة عملة دولة (مثل USD, SAR, EGP)",
+        addBtn: "إضافة",
+        bgLabel: "تغيير خلفية التطبيق",
+        resetBgBtn: "استعادة الخلفية الافتراضية",
+        calcTitle: "آلة حاسبة",
+        months: "أشهر"
+      },
+      hi: {
+        appTitle: "टैक्स और करेंसी प्रो",
+        vatLabel: "5% वैट राशि",
+        refundLabel: "टैक्स रिफंड (81%)",
+        tabCurrency: "मुद्रा परिवर्तक",
+        tabInstallments: "किस्त योजना (EMI)",
+        clearBtn: "साफ़ करें",
+        settingsTitle: "सेटिंग्स",
+        langLabel: "भाषा",
+        addCountryLabel: "देश की मुद्रा जोड़ें (जैसे INR, USD, GBP)",
+        addBtn: "जोड़ें",
+        bgLabel: "ऐप बैकग्राउंड बदलें",
+        resetBgBtn: "डिफ़ॉल्ट बैकग्राउंड",
+        calcTitle: "कैलकुलेटर",
+        months: "महीने"
+      },
+      tl: {
+        appTitle: "Tax at Currency Pro",
+        vatLabel: "5% na VAT",
+        refundLabel: "Tax Refund (81%)",
+        tabCurrency: "Palitan ng Pera",
+        tabInstallments: "Hulugan (Installment)",
+        clearBtn: "BURAHIN",
+        settingsTitle: "Mga Setting",
+        langLabel: "Wika",
+        addCountryLabel: "Magdagdag ng Pera ng Bansa (hal. PHP, USD, EUR)",
+        addBtn: "Idagdag",
+        bgLabel: "Palitan ang Background",
+        resetBgBtn: "Ibalik sa Dating Background",
+        calcTitle: "Kalkulador",
+        months: "Buwan"
+      }
+    };
+
+    const countryMeta = {
+      USD: "🇺🇸 United States (USD)",
+      EUR: "🇪🇺 European Union (EUR)",
+      GBP: "🇬🇧 United Kingdom (GBP)",
+      INR: "🇮🇳 India (INR)",
+      PHP: "🇵🇭 Philippines (PHP)",
+      SAR: "🇸🇦 Saudi Arabia (SAR)",
+      KWD: "🇰🇼 Kuwait (KWD)",
+      QAR: "🇶🇦 Qatar (QAR)",
+      OMR: "🇴🇲 Oman (OMR)",
+      BHD: "🇧🇭 Bahrain (BHD)",
+      CNY: "🇨🇳 China (CNY)",
+      JPY: "🇯🇵 Japan (JPY)",
+      RUB: "🇷🇺 Russia (RUB)",
+      EGP: "🇪🇬 Egypt (EGP)",
+      PKR: "🇵🇰 Pakistan (PKR)"
+    };
+
+    // State
+    let rawInput = "0";
+    let lang = localStorage.getItem("app_lang") || "en";
+    let selectedCurrencies = JSON.parse(localStorage.getItem("app_currencies")) || ["USD", "EUR", "GBP", "INR", "PHP", "SAR"];
+    let rates = JSON.parse(localStorage.getItem("app_rates")) || {
+      USD: 0.27229, EUR: 0.251, GBP: 0.214, INR: 22.85, PHP: 15.85, SAR: 1.021, KWD: 0.083, QAR: 0.991
+    };
+
+    // Fetch Live Google Finance-aligned Spot Rates (AED Base)
+    async function fetchRates() {
+      try {
+        const res = await fetch("https://open.er-api.com/v6/latest/AED");
+        const data = await res.json();
+        if (data && data.rates) {
+          rates = data.rates;
+          localStorage.setItem("app_rates", JSON.stringify(rates));
+          document.getElementById("rateSourceMeta").textContent =
+            `Live Market Feed (Google Finance Parity) • Updated: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+          renderAll();
+        }
+      } catch (e) {
+        document.getElementById("rateSourceMeta").textContent = "Offline Mode • Using cached market rates";
+      }
+    }
+
+    // Core Calculations
+    function renderAll() {
+      const val = parseFloat(rawInput) || 0;
+      document.getElementById("mainDisplay").textContent = rawInput;
+
+      // Tax Refund Formula: input * 5% * 81%
+      const vatAmount = val * 0.05;
+      const refundAmount = val * 0.05 * 0.81;
+
+      document.getElementById("vatDisplay").textContent = `${vatAmount.toFixed(2)} AED`;
+      document.getElementById("refundDisplay").textContent = `${refundAmount.toFixed(2)} AED`;
+
+      // Currency List
+      const currencyList = document.getElementById("currencyList");
+      currencyList.innerHTML = "";
+      selectedCurrencies.forEach(code => {
+        const rate = rates[code] || 0;
+        const converted = (val * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const label = countryMeta[code] || `🌐 ${code}`;
+        const row = document.createElement("div");
+        row.className = "list-row";
+        row.innerHTML = `<span>${label}</span><strong>${converted} ${code}</strong>`;
+        currencyList.appendChild(row);
+      });
+
+      // Installment Plans: 3, 4, 6, 8, 9, 12 months
+      const plans = [3, 4, 6, 8, 9, 12];
+      const installmentList = document.getElementById("installmentList");
+      installmentList.innerHTML = "";
+      plans.forEach(months => {
+        const monthly = (val / months).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const row = document.createElement("div");
+        row.className = "list-row";
+        row.innerHTML = `<span>${months} ${i18n[lang].months} (0% Plan)</span><strong>${monthly} AED / mo</strong>`;
+        installmentList.appendChild(row);
+      });
+    }
+
+    // Numpad Events
+    document.querySelectorAll(".num-btn[data-num]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const char = btn.dataset.num;
+        if (char === "." && rawInput.includes(".")) return;
+        if (rawInput === "0" && char !== ".") {
+          rawInput = char;
+        } else if (rawInput.length < 12) {
+          rawInput += char;
+        }
+        renderAll();
+      });
+    });
+
+    document.getElementById("backspaceBtn").addEventListener("click", () => {
+      rawInput = rawInput.length > 1 ? rawInput.slice(0, -1) : "0";
+      renderAll();
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      rawInput = "0";
+      renderAll();
+    });
+
+    // Tabs
+    const tabCurrency = document.getElementById("tabCurrency");
+    const tabInstallments = document.getElementById("tabInstallments");
+    tabCurrency.addEventListener("click", () => {
+      tabCurrency.classList.add("active");
+      tabInstallments.classList.remove("active");
+      document.getElementById("currencyPanel").style.display = "block";
+      document.getElementById("installmentPanel").style.display = "none";
+    });
+    tabInstallments.addEventListener("click", () => {
+      tabInstallments.classList.add("active");
+      tabCurrency.classList.remove("active");
+      document.getElementById("installmentPanel").style.display = "block";
+      document.getElementById("currencyPanel").style.display = "none";
+    });
+
+    // Settings Modal
+    const settingsModal = document.getElementById("settingsModal");
+    document.getElementById("openSettingsBtn").onclick = () => {
+      renderCurrencyTags();
+      settingsModal.classList.add("open");
+    };
+    document.getElementById("closeSettingsBtn").onclick = () => settingsModal.classList.remove("open");
+
+    function renderCurrencyTags() {
+      const container = document.getElementById("activeCurrenciesTags");
+      container.innerHTML = "";
+      selectedCurrencies.forEach(code => {
+        const tag = document.createElement("span");
+        tag.style.cssText = "background:#334155; padding:4px 8px; border-radius:6px; font-size:0.8rem; cursor:pointer;";
+        tag.textContent = `${code} ✕`;
+        tag.onclick = () => {
+          selectedCurrencies = selectedCurrencies.filter(c => c !== code);
+          localStorage.setItem("app_currencies", JSON.stringify(selectedCurrencies));
+          renderCurrencyTags();
+          renderAll();
+        };
+        container.appendChild(tag);
+      });
+    }
+
+    document.getElementById("addCurrencyBtn").onclick = () => {
+      const code = document.getElementById("newCurrencyInput").value.trim().toUpperCase();
+      if (code.length === 3 && !selectedCurrencies.includes(code)) {
+        selectedCurrencies.push(code);
+        localStorage.setItem("app_currencies", JSON.stringify(selectedCurrencies));
+        document.getElementById("newCurrencyInput").value = "";
+        renderCurrencyTags();
+        renderAll();
+      }
+    };
+
+    // Language Switcher
+    const languageSelect = document.getElementById("languageSelect");
+    languageSelect.value = lang;
+    function applyLanguage(newLang) {
+      lang = newLang;
+      localStorage.setItem("app_lang", lang);
+      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.dataset.i18n;
+        if (i18n[lang][key]) el.textContent = i18n[lang][key];
+      });
+      renderAll();
+    }
+    languageSelect.onchange = (e) => applyLanguage(e.target.value);
+
+    // Background Uploader
+    const savedBg = localStorage.getItem("app_bg");
+    if (savedBg) document.body.style.backgroundImage = `url(${savedBg})`;
+
+    document.getElementById("bgUploadInput").onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        localStorage.setItem("app_bg", reader.result);
+        document.body.style.backgroundImage = `url(${reader.result})`;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    document.getElementById("resetBgBtn").onclick = () => {
+      localStorage.removeItem("app_bg");
+      document.body.style.backgroundImage = "none";
+    };
+
+    // Pop-up Calculator Logic
+    const calcModal = document.getElementById("calcModal");
+    const calcScreen = document.getElementById("calcScreen");
+    let calcExpr = "";
+
+    document.getElementById("openCalcBtn").onclick = () => calcModal.classList.add("open");
+    document.getElementById("closeCalcBtn").onclick = () => calcModal.classList.remove("open");
+
+    document.querySelectorAll(".calc-key[data-calc]").forEach(btn => {
+      btn.onclick = () => {
+        const k = btn.dataset.calc;
+        if (k === "C") {
+          calcExpr = "";
+          calcScreen.textContent = "0";
+        } else if (k === "=") {
+          try {
+            const sanitized = calcExpr.replace(/[^0-9+\-*/().]/g, "");
+            const result = Function(`"use strict"; return (${sanitized})`)();
+            calcExpr = Number.isFinite(result) ? String(Number(result.toFixed(4))) : "0";
+            calcScreen.textContent = calcExpr;
+          } catch {
+            calcScreen.textContent = "Error";
+            calcExpr = "";
+          }
+        } else {
+          calcExpr += k;
+          calcScreen.textContent = calcExpr;
+        }
+      };
+    });
+
+    document.getElementById("useCalcValueBtn").onclick = () => {
+      const num = parseFloat(calcScreen.textContent);
+      if (!isNaN(num) && num >= 0) {
+        rawInput = String(num);
+        renderAll();
+      }
+      calcModal.classList.remove("open");
+    };
+
+    // Init
+    applyLanguage(lang);
+    fetchRates();
+  </script>
+</body>
+</html>
